@@ -7,7 +7,8 @@ N=1
 # print(SNR)
 # set the configuration for the resolution
 configuration=0
-num_points=[64, 256, 1024, 4096]
+# num_points=[64, 256, 1024, 4096]
+num_points=[64, 256, 1024]
 SNR=numpy.zeros((4, 40))
 for test in range(1):
     for (indexnumpoints,num_point) in enumerate(num_points):
@@ -23,7 +24,8 @@ for test in range(1):
 
 SNR/= N
 
-plt.plot(db, SNR[0],"r", db, SNR[1], "b", db, SNR[2], "g", SNR[3], "g")
+# plt.plot(db, SNR[0],"r", db, SNR[1], "b", db, SNR[2], "g", SNR[3], "g")
+plt.plot(db, SNR[0],"r", db, SNR[1], "b", db, SNR[2], "g")
 plt.xlabel("POWER (dB)")
 plt.ylabel("Distortion (dB)")
 plt.title("TEST0")

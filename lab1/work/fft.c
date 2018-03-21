@@ -8,7 +8,6 @@
 #include "fixed_point.h"
 
 #include "complex.h"
-
 #define PI 3.14159265359
 #define MAXPOW 24
 
@@ -81,12 +80,22 @@ void twiddle_fixed(struct complex16 *W, int N, double stuff)
 {
 	W->r=(int16_t)(32767.0*cos(stuff*2.0*PI/(double)N));
 	W->i=(int16_t)(-32767.0*sin(stuff*2.0*PI/(double)N));
+	//
+	//Trying with rounding instead of flooring
+	//
+	/*W->r=(int16_t)(32767.0*cos(stuff*2.0*PI/(double)N)+0.5*32767.0);*/
+	/*W->i=(int16_t)(-32767.0*sin(stuff*2.0*PI/(double)N)+0.5*32767.0);*/
 }
 
 void twiddle_fixed_Q17(struct complex32 *W, int N, double stuff)
 {
 	W->r=(int)(((1<<17)-1)*cos(stuff*2.0*PI/(double)N));
 	W->i=(int)((1-(1<<17))*sin(stuff*2.0*PI/(double)N));
+	//
+	//Trying with rounding instead of flooring
+	//
+	/*W->r=(int)(((1<<17)-1)*cos(stuff*2.0*PI/(double)N)+0.5*((1<<17)-1));*/
+	/*W->i=(int)(((1<<17)-1)*sin(stuff*2.0*PI/(double)N)+0.5*((1<<17)-1));*/
 }
 
 void bit_r4_reorder_fixed_Q15(struct complex16 *W, 
@@ -242,8 +251,8 @@ void radix4_fixed_Q15(struct complex16 *x,   // Input in Q15 format
 
 
 		// In-place results
-		x[n2].r = bfly[0].r;
-		x[n2].i = bfly[0].i;
+		/*x[n2].r = bfly[0].r;*/
+		/*x[n2].i = bfly[0].i;*/
 
 		for (k1=0; k1<N1; k1++)
 		{
@@ -307,8 +316,8 @@ void radix4_fixed_Q24xQ17(struct complex32 *x,   // Input in Q24 format
 		bfly[3].i = SAT_ADD25(x[n2].i ,SAT_ADD25( x[N2+n2].r, SAT_ADD25( -x[2*N2+n2].i, -x[3*N2+n2].r )));
 
 		// In-place results
-		x[n2].r = bfly[0].r;
-		x[n2].i = bfly[0].i;
+		/*x[n2].r = bfly[0].r;*/
+		/*x[n2].i = bfly[0].i;*/
 
 		for (k1=0; k1<N1; k1++)
 		{
@@ -408,10 +417,10 @@ void fft_distortion_test(int N,             // dimension of FFT under test
 
 	// Make fixed-point versions of data (adjust to the range)
 	for (i=0;i<N;i++) {
-		data16[i].r = (int16_t)(data[i].r*32767);
-		data16[i].i = (int16_t)(data[i].i*32767);
-		data32[i].r = (int)(data[i].r*16777215.0);
-		data32[i].i = (int)(data[i].i*16777215.0);
+		data16[i].r = (int16_t)(data[i].r*32767.0);
+		data16[i].i = (int16_t)(data[i].i*32767.0);
+		data32[i].r = (int)(data[i].r*32767.0);
+		data32[i].i = (int)(data[i].i*32767.0);
 
 	}
 
@@ -449,7 +458,7 @@ void fft_distortion_test(int N,             // dimension of FFT under test
 		
 		for (i=0;i<N;i++) {
 			mean_in += data[i].r*data[i].r + data[i].i*data[i].i;
-			mean_error += pow((data[i].r-((double)data32[i].r/(16777215.0))),2) + pow((data[i].i-((double)data32[i].i/(16777215.0))),2);
+			mean_error += pow((data[i].r-((double)data32[i].r/(32767.0))),2) + pow((data[i].i-((double)data32[i].i/(32767.0))),2);
 		}
 		
 	}
