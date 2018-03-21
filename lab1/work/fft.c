@@ -173,8 +173,7 @@ void radix4(struct complex *x, int N)
 	{
 		/** Radix 4 butterfly */
 		bfly[0].r = (x[n2].r + x[N2 + n2].r + x[2*N2+n2].r + x[3*N2+n2].r);
-		bfly[0].i = (x[n2].i + x[N2 + n2].i + x[2*N2+n2].i + x[3*N2+n2].i);
-
+		bfly[0].i = (x[n2].i + x[N2 + n2].i + x[2*N2+n2].i + x[3*N2+n2].i); 
 		bfly[1].r = (x[n2].r + x[N2 + n2].i - x[2*N2+n2].r - x[3*N2+n2].i);
 		bfly[1].i = (x[n2].i - x[N2 + n2].r - x[2*N2+n2].i + x[3*N2+n2].r);
 
@@ -492,7 +491,7 @@ int main(int argc, char *argv[])
 
 
 	if (argc!= 4) {
-		printf("fft size(16-4096) test(0-2)!!\n");
+		printf("fft size(16-4096) test(0-2) configuration(0=16bits 1=25x18)!!\n");
 		exit(-1);
 	}
 
@@ -514,8 +513,8 @@ int main(int argc, char *argv[])
 //seeds for random initialization
 //
 
-randominit();
-set_taus_seed();
+	randominit();
+	set_taus_seed();
 
 	/** Set up power of two arrays */
 	pow_2[0]=1;
@@ -548,7 +547,7 @@ set_taus_seed();
 
 	printf("res_%d = [ \n",N);    
 
-	for (input_dB=-40;input_dB<0;input_dB++) {
+	for (input_dB=-40;input_dB<0;input_dB+=0.5) {
 
 
 		switch (N) {
