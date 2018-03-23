@@ -5,8 +5,6 @@ int16_t FIX_MPY(int x, int y)  {
 	return ((int16_t)(((int)x * (int)y)>>15));
 }
 
-
-
 //25-bit by 18-bit multiply, with output scaled to 25-bits, Q24xQ17
 // x is 25-bits stored as 32, y is 18-bits stored as 32
 int FIX_MPY25by18(int x,int y) {
@@ -16,7 +14,6 @@ int FIX_MPY25by18(int x,int y) {
 
 //Saturated addition for Q15
 int16_t SAT_ADD16(int16_t x,int16_t y) {
-
   if ((int)x + (int)y > 32767)
     return(32767);
   else if ((int)x + (int)y < -32767)

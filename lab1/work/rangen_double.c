@@ -3,7 +3,7 @@
 #include <time.h>
 #include <stdlib.h>
 
-static unsigned long seed, iy, ir[98];
+static unsigned int seed, iy, ir[98];
 /*
 @defgroup _uniformdouble 
 @ingroup numerical Uniform linear congruential random number generator.
@@ -22,7 +22,7 @@ void randominit()
 
   srand((unsigned)time(NULL));
 
-  seed = (unsigned long) rand();
+  seed = (unsigned int) rand();
   if (seed % 2 == 0) seed += 1; /* seed and mod are relative prime */
   for (i=1; i<=97; i++)
   {
@@ -86,7 +86,8 @@ main(int argc,char **argv) {
 
   randominit();
   for (i=0;i<10;i++) {
-    printf("%f\n",gaussdouble(0.0,1.0));
+	printf("%f\n",gaussdouble(0.0,1.0));
+
   }
 }
 #endif

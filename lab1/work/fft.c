@@ -26,15 +26,15 @@ int pow_4[MAXPOW];
 /* Function to check if x is power of 4*/
 bool isPowerOfFour(int n)
 {
-  if(n == 0)
-    return 0;
-  while(n != 1)
-  {
-   if(n % 4 != 0)
-      return 0;
-    n = n / 4;
-  }
-  return 1;
+	if(n == 0)
+		return 0;
+	while(n != 1)
+	{
+		if(n % 4 != 0)
+			return 0;
+		n = n / 4;
+	}
+	return 1;
 }
 
 
@@ -47,7 +47,6 @@ void twiddle(struct complex *W, int N, double stuff)
 
 void bit_r4_reorder(struct complex *W,// Final output  
 		int N)            // size of FFT
-
 {
 	int bits, i, j, k;
 	double tempr, tempi;
@@ -76,26 +75,40 @@ void bit_r4_reorder(struct complex *W,// Final output
 	}
 }
 
-void twiddle_fixed(struct complex16 *W, int N, double stuff)
+void twiddle_fixed(struct complex16 *W, int N, double stuff, int rounding)
 {
-	W->r=(int16_t)(32767.0*cos(stuff*2.0*PI/(double)N));
-	W->i=(int16_t)(-32767.0*sin(stuff*2.0*PI/(double)N));
+	if (rounding == 0) {
+		W->r=(int16_t)(32767.0*cos(stuff*2.0*PI/(double)N));
+		W->i=(int16_t)(-32767.0*sin(stuff*2.0*PI/(double)N));
+	}
+	if (rounding == 1){
+		
+		W->r=(int16_t)(round((32767.0*cos(stuff*2.0*PI/(double)N))));
+		W->i=(int16_t)(round(-32767.0*sin(stuff*2.0*PI/(double)N)));
+		/*printf("rounded %d %d \n", W->r, W->i);*/
+
+	}
 	//
 	//Trying with rounding instead of flooring
 	//
-	/*W->r=(int16_t)(32767.0*cos(stuff*2.0*PI/(double)N)+0.5*32767.0);*/
-	/*W->i=(int16_t)(-32767.0*sin(stuff*2.0*PI/(double)N)+0.5*32767.0);*/
+	
 }
 
-void twiddle_fixed_Q17(struct complex32 *W, int N, double stuff)
+void twiddle_fixed_Q17(struct complex32 *W, int N, double stuff, int rounding)
 {
-	W->r=(int)(((1<<17)-1)*cos(stuff*2.0*PI/(double)N));
-	W->i=(int)((1-(1<<17))*sin(stuff*2.0*PI/(double)N));
+	if (rounding==0) {
+		W->r=(int)(((1<<17)-1)*cos(stuff*2.0*PI/(double)N));
+		W->i=(int)((1-(1<<17))*sin(stuff*2.0*PI/(double)N));
+		/*printf("floored %d %d \n", W->r, W->i);*/
+	}
 	//
 	//Trying with rounding instead of flooring
 	//
-	/*W->r=(int)(((1<<17)-1)*cos(stuff*2.0*PI/(double)N)+0.5*((1<<17)-1));*/
-	/*W->i=(int)(((1<<17)-1)*sin(stuff*2.0*PI/(double)N)+0.5*((1<<17)-1));*/
+	else{
+		W->r=(int)(round(((1<<17)-1)*cos(stuff*2.0*PI/(double)N)));
+		W->i=(int)(round(((1<<17)-1)*sin(stuff*2.0*PI/(double)N)));
+		/*printf("rounded %d %d \n", W->r, W->i);*/
+	}
 }
 
 void bit_r4_reorder_fixed_Q15(struct complex16 *W, 
@@ -104,10 +117,8 @@ void bit_r4_reorder_fixed_Q15(struct complex16 *W,
 {
 	int bits, i, j, k;
 	int16_t tempr, tempi;
-
 	for (i=0; i<MAXPOW; i++)
 		if (pow_2[i]==N) bits=i;
-
 	for (i=0; i<N; i++)
 	{
 		j=0;
@@ -116,7 +127,6 @@ void bit_r4_reorder_fixed_Q15(struct complex16 *W,
 			if (i&pow_2[k]) j+=pow_2[bits-k-2];
 			if (i&pow_2[k+1]) j+=pow_2[bits-k-1];
 		}
-
 		if (j>i)  /** Only make "up" swaps */
 		{
 			tempr=W[i].r>>scale;
@@ -133,10 +143,8 @@ void bit_r4_reorder_fixed_Q17(struct complex32 *W, int N, char scale)
 {
 	int bits, i, j, k;
 	int32_t tempr, tempi;
-
 	for (i=0; i<MAXPOW; i++)
 		if (pow_2[i]==N) bits=i;
-
 	for (i=0; i<N; i++)
 	{
 		j=0;
@@ -145,7 +153,6 @@ void bit_r4_reorder_fixed_Q17(struct complex32 *W, int N, char scale)
 			if (i&pow_2[k]) j+=pow_2[bits-k-2];
 			if (i&pow_2[k+1]) j+=pow_2[bits-k-1];
 		}
-
 		if (j>i)  /** Only make "up" swaps */
 		{
 			tempr=W[i].r>>scale; //TODO check this scaling
@@ -174,6 +181,7 @@ void radix4(struct complex *x, int N)
 		/** Radix 4 butterfly */
 		bfly[0].r = (x[n2].r + x[N2 + n2].r + x[2*N2+n2].r + x[3*N2+n2].r);
 		bfly[0].i = (x[n2].i + x[N2 + n2].i + x[2*N2+n2].i + x[3*N2+n2].i); 
+
 		bfly[1].r = (x[n2].r + x[N2 + n2].i - x[2*N2+n2].r - x[3*N2+n2].i);
 		bfly[1].i = (x[n2].i - x[N2 + n2].r - x[2*N2+n2].i + x[3*N2+n2].r);
 
@@ -207,7 +215,9 @@ void radix4(struct complex *x, int N)
 void radix4_fixed_Q15(struct complex16 *x,   // Input in Q15 format 
 		int N,                 // Size of FFT
 		unsigned char *scale,  // Pointer to scaling schedule
-		unsigned char stage)   // Stage of fft
+		unsigned char stage,
+		int rounding
+		)   // Stage of fft
 
 { 
 	int    n2, k1, N1, N2;
@@ -255,7 +265,7 @@ void radix4_fixed_Q15(struct complex16 *x,   // Input in Q15 format
 
 		for (k1=0; k1<N1; k1++)
 		{
-			twiddle_fixed(&W, N, (double)k1*(double)n2);
+			twiddle_fixed(&W, N, (double)k1*(double)n2, rounding);
 			x[n2 + N2*k1].r = SAT_ADD16(FIX_MPY(bfly[k1].r, W.r), -FIX_MPY(bfly[k1].i, W.i));
 			x[n2 + N2*k1].i = SAT_ADD16(FIX_MPY(bfly[k1].i, W.r), +FIX_MPY(bfly[k1].r, W.i));
 		}
@@ -265,7 +275,7 @@ void radix4_fixed_Q15(struct complex16 *x,   // Input in Q15 format
 	if (N2!=1)
 		for (k1=0; k1<N1; k1++)
 		{
-			radix4_fixed_Q15(&x[N2*k1], N2,scale,stage+1);
+			radix4_fixed_Q15(&x[N2*k1], N2,scale,stage+1, rounding);
 		}
 }
 
@@ -276,7 +286,9 @@ void radix4_fixed_Q15(struct complex16 *x,   // Input in Q15 format
 void radix4_fixed_Q24xQ17(struct complex32 *x,   // Input in Q24 format 
 		int N,                 // Size of FFT
 		unsigned char *scale,  // Pointer to scaling schedule
-		unsigned char stage)   // Stage of fft
+		unsigned char stage,
+		int rounding
+		)   // Stage of fft
 { 
 	int    n2, k1, N1, N2;
 	struct complex32 W, bfly[4];
@@ -301,7 +313,6 @@ void radix4_fixed_Q24xQ17(struct complex32 *x,   // Input in Q24 format
 		x[(3*N2) + n2].i >>= scale[stage];
 
 		// Radix 4 Butterfly 
-		//
 		bfly[0].r = SAT_ADD25(x[n2].r ,SAT_ADD25( x[N2+n2].r, SAT_ADD25( x[2*N2+n2].r,x[3*N2+n2].r )));
 		bfly[0].i = SAT_ADD25(x[n2].i ,SAT_ADD25( x[N2+n2].i, SAT_ADD25( x[2*N2+n2].i,x[3*N2+n2].i )));
 
@@ -320,7 +331,7 @@ void radix4_fixed_Q24xQ17(struct complex32 *x,   // Input in Q24 format
 
 		for (k1=0; k1<N1; k1++)
 		{
-			twiddle_fixed_Q17(&W, N, (double)k1*(double)n2);
+			twiddle_fixed_Q17(&W, N, (double)k1*(double)n2, rounding);
 			x[n2 + N2*k1].r = SAT_ADD25(FIX_MPY25by18(bfly[k1].r, W.r), -FIX_MPY25by18(bfly[k1].i, W.i));
 			x[n2 + N2*k1].i = SAT_ADD25(FIX_MPY25by18(bfly[k1].i, W.r), FIX_MPY25by18(bfly[k1].r, W.i));
 		}
@@ -330,7 +341,7 @@ void radix4_fixed_Q24xQ17(struct complex32 *x,   // Input in Q24 format
 	if (N2!=1)
 		for (k1=0; k1<N1; k1++)
 		{
-			radix4_fixed_Q24xQ17(&x[N2*k1], N2,scale,stage+1);
+			radix4_fixed_Q24xQ17(&x[N2*k1], N2,scale,stage+1, rounding);
 		}
 }
 
@@ -350,7 +361,7 @@ void QAM_input(struct complex *data,double amp,int N,int Nu,char M) {
 		rv = taus();
 
 		switch (M) {
-case 0 :   // QPSK
+			case 0 :   // QPSK
 				data[(i+FCO)%N].r = ((rv&1) ? -amp : amp)/sqrt(2.0);
 				data[(i+FCO)%N].i = (((rv>>1)&1) ? -amp : amp)/sqrt(2.0);//TODO should it be "i"?
 				break;
@@ -368,6 +379,7 @@ case 0 :   // QPSK
 void fft_distortion_test(int N,             // dimension of FFT under test 
 		char test,                          // type of test
 		char configuration,					// type of configuration
+		int rounding,						// type of rounding
 		double input_dB,                    // strength of input
 		char *scale,                        // pointr to scaling schedule
 		double *maxSNR,                     // pointer best signal-to-noise ratio
@@ -409,6 +421,12 @@ void fft_distortion_test(int N,             // dimension of FFT under test
 		case 2:    // 16-QAM
 			QAM_input(data,pow(10,.05*input_dB),N,N,1);
 			break;
+		case 3:
+			for (i=0; i<N; i++)
+				data[i].r=pow(10,.05*input_dB)*gaussdouble(0.0, 1)/sqrt(2);
+				data[i].i=pow(10,.05*input_dB)*gaussdouble(0.0, 1)/sqrt(2);
+
+			break;
 
 		default:
 			break;
@@ -433,12 +451,12 @@ void fft_distortion_test(int N,             // dimension of FFT under test
 	bit_r4_reorder(data, N);
 
 	// Do Q15 FFT
-	radix4_fixed_Q15(data16, N,scale,0);
+	radix4_fixed_Q15(data16, N,scale,0, rounding);
 	bit_r4_reorder_fixed_Q15(data16, N,scale[6]);
 
-	
+
 	// Do Q25 FFT
-	radix4_fixed_Q24xQ17(data32, N,scale,0);
+	radix4_fixed_Q24xQ17(data32, N,scale,0, rounding);
 	bit_r4_reorder_fixed_Q17(data32, N, scale[6]);
 
 	// Compute Distortion statistics
@@ -454,12 +472,12 @@ void fft_distortion_test(int N,             // dimension of FFT under test
 	}
 	// else run the Q25FFT
 	else {
-		
+
 		for (i=0;i<N;i++) {
 			mean_in += data[i].r*data[i].r + data[i].i*data[i].i;
 			mean_error += pow((data[i].r-((double)data32[i].r/(32767.0))),2) + pow((data[i].i-((double)data32[i].i/(32767.0))),2);
 		}
-		
+
 	}
 
 	SNR = 10*log10(mean_in/mean_error);
@@ -481,7 +499,7 @@ void fft_distortion_test(int N,             // dimension of FFT under test
 int main(int argc, char *argv[])
 {
 
-	int    N, radix=4,test, configuration;
+	int    N, radix=4,test, configuration, rounding;
 	int    i;
 	char scale[7],maxscale[7],MAXSHIFT;
 	double maxSNR,input_dB;
@@ -490,8 +508,8 @@ int main(int argc, char *argv[])
 	struct complex32 *data32;
 
 
-	if (argc!= 4) {
-		printf("fft size(16-4096) test(0-2) configuration(0=16bits 1=25x18)!!\n");
+	if (argc!= 5) {
+		printf("fft size(16-4096) test(0-2) configuration(0=16bits 1=25x18), rounding (0=flooring, 1=yes)!!\n");
 		exit(-1);
 	}
 
@@ -499,19 +517,20 @@ int main(int argc, char *argv[])
 
 	test = atoi(argv[2]);
 	configuration = atoi(argv[3]);
+	rounding = atoi(argv[4]);
 
 	if (!isPowerOfFour(N)) { //corrected. Before it checked only if it was even or odd
 		printf("Size must be a power of 4!\n");
 		exit(-1);
 	}
 
-	if ((test>2) || (test<0)) {
+	if ((test>3) || (test<0)) {
 		printf("test must be in (0-2)\n");
 		exit(-1);
 	}
 
-//seeds for random initialization
-//
+	//seeds for random initialization
+	//
 
 	randominit();
 	set_taus_seed();
@@ -524,7 +543,7 @@ int main(int argc, char *argv[])
 	for (i=1; i<MAXPOW; i++)
 		pow_4[i]=pow_4[i-1]*4;
 
-	
+
 
 	// Reserve memory for the data structures
 	if ((data=malloc(sizeof(struct complex)*(size_t)N))==NULL)
@@ -547,7 +566,7 @@ int main(int argc, char *argv[])
 
 	printf("res_%d = [ \n",N);    
 
-	for (input_dB=-40;input_dB<0;input_dB+=0.5) {
+	for (input_dB=-40;input_dB<0;input_dB+=1) {
 
 
 		switch (N) {
@@ -584,7 +603,7 @@ int main(int argc, char *argv[])
 								for (scale[4]=0;scale[4]<=MAXSHIFT-scale[0]-scale[1]-scale[2]-scale[3];scale[4]++)
 									for (scale[5]=0;scale[5]<=MAXSHIFT-scale[0]-scale[1]-scale[2]-scale[3]-scale[4];scale[5]++){
 										scale[6]=MAXSHIFT-scale[0]-scale[1]-scale[2]-scale[3]-scale[4]-scale[5];
-										fft_distortion_test(N,test,configuration,input_dB,scale,&maxSNR,maxscale,data,data16,data32);
+										fft_distortion_test(N,test,configuration,rounding, input_dB,scale,&maxSNR,maxscale,data,data16,data32);
 
 									}
 				printf("%f, %f, %% Optimum Scaling : %d %d %d %d %d %d %d\n",input_dB,maxSNR,maxscale[0],maxscale[1],maxscale[2],maxscale[3],maxscale[4],maxscale[5],maxscale[6]);
@@ -597,7 +616,7 @@ int main(int argc, char *argv[])
 							for (scale[3]=0;scale[3]<=MAXSHIFT-scale[0]-scale[1]-scale[2];scale[3]++) 
 								for (scale[4]=0;scale[4]<=MAXSHIFT-scale[0]-scale[1]-scale[2]-scale[3];scale[4]++){
 									scale[6]=MAXSHIFT-scale[0]-scale[1]-scale[2]-scale[3]-scale[4];
-									fft_distortion_test(N,test,configuration,input_dB,scale,&maxSNR,maxscale,data,data16,data32);
+									fft_distortion_test(N,test,configuration,rounding, input_dB,scale,&maxSNR,maxscale,data,data16,data32);
 								}
 				printf("%f, %f, %% Optimum Scaling : %d %d %d %d %d %d %d\n",input_dB,maxSNR,maxscale[0],maxscale[1],maxscale[2],maxscale[3],maxscale[4],maxscale[5],maxscale[6]);
 				break;
@@ -608,18 +627,17 @@ int main(int argc, char *argv[])
 						for (scale[2]=0;scale[2]<=MAXSHIFT-scale[0]-scale[1];scale[2]++)
 							for (scale[3]=0;scale[3]<=MAXSHIFT-scale[0]-scale[1]-scale[2];scale[3]++) {
 								scale[6]=MAXSHIFT-scale[0]-scale[1]-scale[2]-scale[3];
-								fft_distortion_test(N,test,configuration,input_dB,scale,&maxSNR,maxscale,data,data16,data32);
+								fft_distortion_test(N,test,configuration,rounding, input_dB,scale,&maxSNR,maxscale,data,data16,data32);
 							}
 				printf("%f, %f, %% Optimum Scaling : %d %d %d %d %d %d %d\n",input_dB,maxSNR,maxscale[0],maxscale[1],maxscale[2],maxscale[3],maxscale[4],maxscale[5],maxscale[6]);
 				break;
 
 			case 64:
-
 				for (scale[0]=0;scale[0]<=MAXSHIFT;scale[0]++)
 					for (scale[1]=0;scale[1]<=MAXSHIFT-scale[0];scale[1]++)
 						for (scale[2]=0;scale[2]<=MAXSHIFT-scale[0]-scale[1];scale[2]++) {
 							scale[6]=MAXSHIFT-scale[0]-scale[1]-scale[2];
-							fft_distortion_test(N,test,configuration,input_dB,scale,&maxSNR,maxscale,data,data16,data32);
+							fft_distortion_test(N,test,configuration,rounding, input_dB,scale,&maxSNR,maxscale,data,data16,data32);
 						}
 				printf("%f, %f, %% Optimum Scaling : %d %d %d %d %d %d %d\n",input_dB,maxSNR,maxscale[0],maxscale[1],maxscale[2],maxscale[3],maxscale[4],maxscale[5],maxscale[6]);
 				break;
