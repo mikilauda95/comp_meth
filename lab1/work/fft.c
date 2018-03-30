@@ -566,7 +566,7 @@ int main(int argc, char *argv[])
 
 	printf("res_%d = [ \n",N);    
 
-	for (input_dB=-40;input_dB<0;input_dB+=0.2) {
+	for (input_dB=-40;input_dB<40;input_dB+=0.4) {
 
 
 		switch (N) {

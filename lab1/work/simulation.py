@@ -56,7 +56,7 @@ d_round={
     1 : "Twiddle Rounded"
 }
 
-plot_points=200
+plot_points=201
 
 for ind_sim, simulation in enumerate(simulation_list):
     [num_points, test, configuration, rounding, N] = simulation
