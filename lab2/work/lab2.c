@@ -16,14 +16,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define VECTOR_SIZE 1000 // TODO check this
-#define SPARE 288 // TODO check this
-#define ITER_NUM 100
+#define VECTOR_SIZE 10000 // TODO check this
+#define ITER_NUM 1
 
 // example SIMD macros, not necessary to be used, write your own
 //
 
-__m128i reflip[16]={1, -1, 1, -1, 1, -1, 1, -1, 1, -1};
+__m128i reflip[16]={{1, -1}, {1, -1}, {1, -1}, {1, -1}, {1, -1}};
 
 typedef struct cstruct{
 	int16_t re;
@@ -153,10 +152,10 @@ int main(int argc, char *argv[]) {
 				reset_meas(&t);
 			}
 			if (!strcmp(argv[1],"avg")) {
-				fprintf(f, "scalar %f %d\n", (float)(acc/ITER_NUM), i); 
+				printf("scalar %f %d\n", (float)(acc/ITER_NUM), i); 
 			}
 			else {
-				fprintf(f, "scalar %lld %d\n", min, i); 
+				printf("scalar %lld %d\n", min, i); 
 			}
 		}
 		printf("DONE SCALAR\n");
@@ -175,10 +174,10 @@ int main(int argc, char *argv[]) {
 				reset_meas(&t);
 			}
 			if (strcmp(argv[1],"avg")) {
-				fprintf(f, "vector %f %d\n", (float)(acc/ITER_NUM), i); 
+				printf("vector %f %d\n", (float)(acc/ITER_NUM), i); 
 			}
 			else {
-				fprintf(f, "vector %lld %d\n", min, i); 
+				printf("vector %lld %d\n", min, i); 
 			}
 		}
 		printf("DONE 128\n");
@@ -198,17 +197,17 @@ int main(int argc, char *argv[]) {
 				reset_meas(&t);
 			}
 			if (strcmp(argv[1],"avg")) {
-				fprintf(f, "vector256 %f %d\n", (float)(acc/ITER_NUM), i); 
+				printf("vector256 %f %d\n", (float)(acc/ITER_NUM), i); 
 			}
 			else {
-				fprintf(f, "vector256 %lld %d\n", min, i); 
+				printf("vector256 %lld %d\n", min, i); 
 			}
 		}
 		printf("DONE 256\n");
 
 	}
 	else if (!strcmp(argv[3], "complexB")) {
-		for (i = 0; i <= VECTOR_SIZE; ++i) {
+		for (i = 0; i < VECTOR_SIZE; ++i) {
 			min = INT_MAX;
 			acc = 0;
 			for (j = 0; j < ITER_NUM; ++j) {
@@ -222,10 +221,10 @@ int main(int argc, char *argv[]) {
 				reset_meas(&t);
 			}
 			if (!strcmp(argv[1],"avg")) {
-				fprintf(f, "scalar %f %d\n", (float)(acc/ITER_NUM), i); 
+				printf("scalar %f %d\n", (float)(acc/ITER_NUM), i); 
 			}
 			else {
-				fprintf(f, "scalar %lld %d\n", min, i); 
+				printf("scalar %lld %d\n", min, i); 
 			}
 		}
 		printf("DONE SCALAR\n");
@@ -237,6 +236,7 @@ int main(int argc, char *argv[]) {
 				start_meas(&t);
 				componentwise_multiply_complex_128B(re1, re2, im1, im2, re3, im3, i);
 				stop_meas(&t);
+				componentwise_multiply_complex_128B(re1, re2, im1, im2, re3, im3, i);
 				if (min > t.diff) {
 					min = t.diff;
 				}
@@ -244,10 +244,10 @@ int main(int argc, char *argv[]) {
 				reset_meas(&t);
 			}
 			if (strcmp(argv[1],"avg")) {
-				fprintf(f, "vector %f %d\n", (float)(acc/ITER_NUM), i); 
+				printf("vector %f %d\n", (float)(acc/ITER_NUM), i); 
 			}
 			else {
-				fprintf(f, "vector %lld %d\n", min, i); 
+				printf("vector %lld %d\n", min, i); 
 			}
 		}
 		printf("DONE 128\n");
@@ -267,10 +267,10 @@ int main(int argc, char *argv[]) {
 				reset_meas(&t);
 			}
 			if (strcmp(argv[1],"avg")) {
-				fprintf(f, "vector256 %f %d\n", (float)(acc/ITER_NUM), i); 
+				printf("vector256 %f %d\n", (float)(acc/ITER_NUM), i); 
 			}
 			else {
-				fprintf(f, "vector256 %lld %d\n", min, i); 
+				printf("vector256 %lld %d\n", min, i); 
 			}
 		}
 		printf("DONE 256\n");
@@ -291,11 +291,11 @@ int main(int argc, char *argv[]) {
 				reset_meas(&t);
 			}
 			if (!strcmp(argv[1],"avg")) {
-				fprintf(f, "scalar %f %d\n", (float)(acc/ITER_NUM), i); 
+				printf("scalar %f %d\n", (float)(acc/ITER_NUM), i); 
 
 			}
 			else {
-				fprintf(f, "scalar %lld %d\n", min, i); 
+				printf("scalar %lld %d\n", min, i); 
 			}
 		}
 		printf("DONE SCALAR\n");
@@ -321,10 +321,10 @@ int main(int argc, char *argv[]) {
 				reset_meas(&t);
 			}
 			if (strcmp(argv[1],"avg")) {
-				fprintf(f, "vector %f %d\n", (float)(acc/ITER_NUM), i); 
+				printf("vector %f %d\n", (float)(acc/ITER_NUM), i); 
 			}
 			else {
-				fprintf(f, "vector %lld %d\n", min, i); 
+				printf("vector %lld %d\n", min, i); 
 			}
 		}
 		printf("DONE 128\n");
@@ -344,10 +344,10 @@ int main(int argc, char *argv[]) {
 				reset_meas(&t);
 			}
 			if (strcmp(argv[1],"avg")) {
-				fprintf(f, "vector256 %f %d\n", (float)(acc/ITER_NUM), i); 
+				printf("vector256 %f %d\n", (float)(acc/ITER_NUM), i); 
 			}
 			else {
-				fprintf(f, "vector256 %lld %d\n", min, i); 
+				printf("vector256 %lld %d\n", min, i); 
 			}
 		}
 		printf("DONE 256\n");
@@ -409,9 +409,8 @@ static inline void componentwise_multiply_complex_128B(int16_t *xre, int16_t *yr
 	__m128i *yim128 = (__m128i *)yim;
 	__m128i *zre128 = (__m128i *)zre;
 	__m128i *zim128 = (__m128i *)zim;
-	__m128i tmp;
 	int i;
-	for (i = 0; i < ceil(N/8.0)*2; i++) {
+	for (i = 0; i < N>>8; i++) {
 		zre128[i] = _mm_mulhrs_epi16(xre128[i], yre128[i]); 
 		zre128[i] = _mm_sub_epi16(zre128[i], _mm_mulhrs_epi16(xim128[i], yim128[i])); 
 		zim128[i] = _mm_mulhrs_epi16(xre128[i], yim128[i]); 
@@ -426,9 +425,8 @@ static inline void componentwise_multiply_complex_256B(int16_t *xre, int16_t *yr
 	__m256i *yim256 = (__m256i *)yim;
 	__m256i *zre256 = (__m256i *)zre;
 	__m256i *zim256 = (__m256i *)zim;
-	__m256i tmp;
 	int i;
-	for (i = 0; i < ceil(N/8.0)*2; i++) {
+	for (i = 0; i < (N>>16); i++) {
 		zre256[i] = _mm256_mulhrs_epi16(xre256[i], yre256[i]); 
 		zre256[i] = _mm256_sub_epi16(zre256[i], _mm256_mulhrs_epi16(xim256[i], yim256[i])); 
 		zim256[i] = _mm256_mulhrs_epi16(xre256[i], yim256[i]); 
