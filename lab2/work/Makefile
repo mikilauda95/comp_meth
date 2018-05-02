@@ -8,7 +8,7 @@ lab2: lab2.o
 	$(CC) $(CFLAGS) lab2.o -lm -o lab2 
 
 lab2.o: lab2.c 
-	$(CC) $(CFLAGS) lab2.c -o lab2.o -c -O1
+	$(CC) $(CFLAGS) lab2.c -o lab2.o -c
 
 clean:
 	rm -f *.o 

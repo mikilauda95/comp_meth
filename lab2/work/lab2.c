@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
 	/*__m128i *x128, *y128, *z128;*/
 
 	if (argc != 4) {
-		fprintf(stderr, "Usage ./lab2 [avg/min] [filename] [real/complex/complexB]\n");
+		fprintf(stderr, "Usage ./lab2 [avg/min] [filename] [real/complex/complexB] [scalar/128/256]\n");
 		return(-1);
 	}
 
@@ -158,6 +158,10 @@ int main(int argc, char *argv[]) {
 				printf("scalar %lld %d\n", min, i); 
 			}
 		}
+		for (i = 0; i < VECTOR_SIZE; ++i) {
+			fprintf(f,"%d ",zc[i].re );
+			fprintf(f,"%d ",zc[i].im );
+		}
 		printf("DONE SCALAR\n");
 		// 128 bits complex Multiplication
 		for (i = 0; i < VECTOR_SIZE; ++i) {
@@ -179,6 +183,10 @@ int main(int argc, char *argv[]) {
 			else {
 				printf("vector %lld %d\n", min, i); 
 			}
+		}
+		for (i = 0; i < VECTOR_SIZE; ++i) {
+			fprintf(f,"%d ",zc[i].re );
+			fprintf(f,"%d ",zc[i].im );
 		}
 		printf("DONE 128\n");
 
@@ -202,6 +210,10 @@ int main(int argc, char *argv[]) {
 			else {
 				printf("vector256 %lld %d\n", min, i); 
 			}
+		}
+		for (i = 0; i < VECTOR_SIZE; ++i) {
+			fprintf(f,"%d ",zc[i].re );
+			fprintf(f,"%d ",zc[i].im );
 		}
 		printf("DONE 256\n");
 
@@ -227,6 +239,10 @@ int main(int argc, char *argv[]) {
 				printf("scalar %lld %d\n", min, i); 
 			}
 		}
+		for (i = 0; i < VECTOR_SIZE; ++i) {
+			fprintf(f,"%d ", re3[i]);
+			fprintf(f,"%d ", im3[i]);
+		}
 		printf("DONE SCALAR\n");
 		// 128 bits complex Multiplication
 		for (i = 0; i < VECTOR_SIZE; ++i) {
@@ -236,12 +252,10 @@ int main(int argc, char *argv[]) {
 				start_meas(&t);
 				componentwise_multiply_complex_128B(re1, re2, im1, im2, re3, im3, i);
 				stop_meas(&t);
-				componentwise_multiply_complex_128B(re1, re2, im1, im2, re3, im3, i);
 				if (min > t.diff) {
 					min = t.diff;
 				}
 				acc+=t.diff;
-				reset_meas(&t);
 			}
 			if (strcmp(argv[1],"avg")) {
 				printf("vector %f %d\n", (float)(acc/ITER_NUM), i); 
@@ -249,6 +263,11 @@ int main(int argc, char *argv[]) {
 			else {
 				printf("vector %lld %d\n", min, i); 
 			}
+			reset_meas(&t);
+		}
+		for (i = 0; i < VECTOR_SIZE; ++i) {
+			fprintf(f,"%d ", re3[i]);
+			fprintf(f,"%d ", im3[i]);
 		}
 		printf("DONE 128\n");
 
@@ -272,6 +291,10 @@ int main(int argc, char *argv[]) {
 			else {
 				printf("vector256 %lld %d\n", min, i); 
 			}
+		}
+		for (i = 0; i < VECTOR_SIZE; ++i) {
+			fprintf(f,"%d ", re3[i]);
+			fprintf(f,"%d ", im3[i]);
 		}
 		printf("DONE 256\n");
 
@@ -297,6 +320,10 @@ int main(int argc, char *argv[]) {
 			else {
 				printf("scalar %lld %d\n", min, i); 
 			}
+		}
+		for (i = 0; i < VECTOR_SIZE; ++i) {
+			fprintf(f,"%d ", z[i]);
+			fprintf(f,"%d ", z[i]);
 		}
 		printf("DONE SCALAR\n");
 
@@ -327,6 +354,10 @@ int main(int argc, char *argv[]) {
 				printf("vector %lld %d\n", min, i); 
 			}
 		}
+		for (i = 0; i < VECTOR_SIZE; ++i) {
+			fprintf(f,"%d ", z[i]);
+			fprintf(f,"%d ", z[i]);
+		}
 		printf("DONE 128\n");
 
 		// 256 bits Multiplication
@@ -349,6 +380,10 @@ int main(int argc, char *argv[]) {
 			else {
 				printf("vector256 %lld %d\n", min, i); 
 			}
+		}
+		for (i = 0; i < VECTOR_SIZE; ++i) {
+			fprintf(f,"%d ", z[i]);
+			fprintf(f,"%d ", z[i]);
 		}
 		printf("DONE 256\n");
 	}
@@ -468,14 +503,14 @@ static inline void componentwise_multiply_complex_256(cstruct *x, cstruct *y, cs
 	}
 }
 
-static inline void componentwise_multiply_real_scalar(int16_t *x,int16_t *y,int16_t *z, int N) {
+static inline void componentwise_multiply_real_scalar(int16_t *x, int16_t *y, int16_t *z, int N) {
 	int i;
 	for (i = 1; i <= N; i++) {
 		z[i] = x[i] * y[i];
 	}
 }
 
-static inline void componentwise_multiply_real_128(int16_t *x,int16_t *y,int16_t *z, int N) {
+static inline void componentwise_multiply_real_128(int16_t *x,int16_t *y, int16_t *z, int N) {
 
 	__m128i *x128 = (__m128i *)x;
 	__m128i *y128 = (__m128i *)y;
@@ -487,7 +522,7 @@ static inline void componentwise_multiply_real_128(int16_t *x,int16_t *y,int16_t
 	}
 }
 
-static inline void componentwise_multiply_real_256(int16_t *x,int16_t *y,int16_t *z, uint16_t N) {
+static inline void componentwise_multiply_real_256(int16_t *x,int16_t *y, int16_t *z, uint16_t N) {
 
 	__m256i *x256 = (__m256i *)x;
 	__m256i *y256 = (__m256i *)y;
