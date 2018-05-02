@@ -17,7 +17,7 @@
 #include <string.h>
 
 #define VECTOR_SIZE 10000 // TODO check this
-#define ITER_NUM 1
+#define ITER_NUM 2
 
 // example SIMD macros, not necessary to be used, write your own
 //
@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
 	f = fopen(argv[2], "w");
 	/*__m128i *x128, *y128, *z128;*/
 
-	if (argc != 4) {
+	if (argc != 5) {
 		fprintf(stderr, "Usage ./lab2 [avg/min] [filename] [real/complex/complexB] [scalar/128/256]\n");
 		return(-1);
 	}
@@ -138,194 +138,210 @@ int main(int argc, char *argv[]) {
 
 
 	if (!strcmp(argv[3], "complex")) {
-		for (i = 0; i < VECTOR_SIZE; ++i) {
-			min = INT_MAX;
-			acc = 0;
-			for (j = 0; j < ITER_NUM; ++j) {
-				start_meas(&t);
-				componentwise_multiply_complex_scalar(xc, yc, zc, i);
-				stop_meas(&t);
-				if (min > t.diff) {
-					min = t.diff;
+		if (!strcmp(argv[4], "scalar")) {
+			for (i = 0; i < VECTOR_SIZE; ++i) {
+				min = INT_MAX;
+				acc = 0;
+				for (j = 0; j < ITER_NUM; ++j) {
+					start_meas(&t);
+					componentwise_multiply_complex_scalar(xc, yc, zc, i);
+					stop_meas(&t);
+					if (min > t.diff) {
+						min = t.diff;
+					}
+					acc+=t.diff;
+					reset_meas(&t);
 				}
-				acc+=t.diff;
-				reset_meas(&t);
-			}
-			if (!strcmp(argv[1],"avg")) {
-				printf("scalar %f %d\n", (float)(acc/ITER_NUM), i); 
-			}
-			else {
-				printf("scalar %lld %d\n", min, i); 
-			}
-		}
-		for (i = 0; i < VECTOR_SIZE; ++i) {
-			fprintf(f,"%d ",zc[i].re );
-			fprintf(f,"%d ",zc[i].im );
-		}
-		printf("DONE SCALAR\n");
-		// 128 bits complex Multiplication
-		for (i = 0; i < VECTOR_SIZE; ++i) {
-			min = LLONG_MAX;
-			acc = 0;
-			for (j = 0; j < ITER_NUM; ++j) {
-				start_meas(&t);
-				componentwise_multiply_complex_128(xc, yc, zc, i);
-				stop_meas(&t);
-				if (min > t.diff) {
-					min = t.diff;
+				if (!strcmp(argv[1],"avg")) {
+					printf("scalar %f %d\n", (float)(acc/ITER_NUM), i); 
 				}
-				acc+=t.diff;
-				reset_meas(&t);
+				else {
+					printf("scalar %lld %d\n", min, i); 
+				}
 			}
-			if (strcmp(argv[1],"avg")) {
-				printf("vector %f %d\n", (float)(acc/ITER_NUM), i); 
+			for (i = 0; i < VECTOR_SIZE; ++i) {
+				fprintf(f,"%d ",zc[i].re );
+				fprintf(f,"%d ",zc[i].im );
 			}
-			else {
-				printf("vector %lld %d\n", min, i); 
-			}
+			printf("DONE SCALAR\n");
 		}
-		for (i = 0; i < VECTOR_SIZE; ++i) {
-			fprintf(f,"%d ",zc[i].re );
-			fprintf(f,"%d ",zc[i].im );
+		else if (!strcmp(argv[4], "128")) {
+			// 128 bits complex Multiplication
+			for (i = 0; i < VECTOR_SIZE; ++i) {
+				min = LLONG_MAX;
+				acc = 0;
+				for (j = 0; j < ITER_NUM; ++j) {
+					start_meas(&t);
+					componentwise_multiply_complex_128(xc, yc, zc, i);
+					stop_meas(&t);
+					if (min > t.diff) {
+						min = t.diff;
+					}
+					acc+=t.diff;
+					reset_meas(&t);
+				}
+				if (strcmp(argv[1],"avg")) {
+					printf("vector %f %d\n", (float)(acc/ITER_NUM), i); 
+				}
+				else {
+					printf("vector %lld %d\n", min, i); 
+				}
+			}
+			for (i = 0; i < VECTOR_SIZE; ++i) {
+				fprintf(f,"%d ",zc[i].re );
+				fprintf(f,"%d ",zc[i].im );
+			}
+			printf("DONE 128\n");
 		}
-		printf("DONE 128\n");
 
-		// 256 bits complex Multiplication
-		for (i = 0; i < VECTOR_SIZE; ++i) {
-			min = LLONG_MAX;
-			acc = 0;
-			for (j = 0; j < ITER_NUM; ++j) {
-				start_meas(&t);
-				componentwise_multiply_complex_256(xc, yc, zc, i);
-				stop_meas(&t);
-				if (min > t.diff) {
-					min = t.diff;
+		else if (!strcmp(argv[4], "256")) {
+			// 256 bits complex Multiplication
+			for (i = 0; i < VECTOR_SIZE; ++i) {
+				min = LLONG_MAX;
+				acc = 0;
+				for (j = 0; j < ITER_NUM; ++j) {
+					start_meas(&t);
+					componentwise_multiply_complex_256(xc, yc, zc, i);
+					stop_meas(&t);
+					if (min > t.diff) {
+						min = t.diff;
+					}
+					acc+=t.diff;
+					reset_meas(&t);
 				}
-				acc+=t.diff;
-				reset_meas(&t);
+				if (strcmp(argv[1],"avg")) {
+					printf("vector256 %f %d\n", (float)(acc/ITER_NUM), i); 
+				}
+				else {
+					printf("vector256 %lld %d\n", min, i); 
+				}
 			}
-			if (strcmp(argv[1],"avg")) {
-				printf("vector256 %f %d\n", (float)(acc/ITER_NUM), i); 
+			for (i = 0; i < VECTOR_SIZE; ++i) {
+				fprintf(f,"%d ",zc[i].re );
+				fprintf(f,"%d ",zc[i].im );
 			}
-			else {
-				printf("vector256 %lld %d\n", min, i); 
-			}
-		}
-		for (i = 0; i < VECTOR_SIZE; ++i) {
-			fprintf(f,"%d ",zc[i].re );
-			fprintf(f,"%d ",zc[i].im );
-		}
-		printf("DONE 256\n");
+			printf("DONE 256\n");
 
+		}
 	}
 	else if (!strcmp(argv[3], "complexB")) {
-		for (i = 0; i < VECTOR_SIZE; ++i) {
-			min = INT_MAX;
-			acc = 0;
-			for (j = 0; j < ITER_NUM; ++j) {
-				start_meas(&t);
-				componentwise_multiply_complex_scalarB(re1, re2, im1, im2, re3, im3, i);
-				stop_meas(&t);
-				if (min > t.diff) {
-					min = t.diff;
+		if (!strcmp(argv[4], "scalar")) {
+
+			for (i = 0; i < VECTOR_SIZE; ++i) {
+				min = INT_MAX;
+				acc = 0;
+				for (j = 0; j < ITER_NUM; ++j) {
+					start_meas(&t);
+					componentwise_multiply_complex_scalarB(re1, re2, im1, im2, re3, im3, i);
+					stop_meas(&t);
+					if (min > t.diff) {
+						min = t.diff;
+					}
+					acc+=t.diff;
+					reset_meas(&t);
 				}
-				acc+=t.diff;
+				if (!strcmp(argv[1],"avg")) {
+					printf("scalar %f %d\n", (float)(acc/ITER_NUM), i); 
+				}
+				else {
+					printf("scalar %lld %d\n", min, i); 
+				}
+			}
+			for (i = 0; i < VECTOR_SIZE; ++i) {
+				fprintf(f,"%d ", re3[i]);
+				fprintf(f,"%d ", im3[i]);
+			}
+			printf("DONE SCALAR\n");
+		}
+
+		else if (!strcmp(argv[4], "128")) {
+			// 128 bits complex Multiplication
+			for (i = 0; i < VECTOR_SIZE; ++i) {
+				min = LLONG_MAX;
+				acc = 0;
+				for (j = 0; j < ITER_NUM; ++j) {
+					start_meas(&t);
+					componentwise_multiply_complex_128B(re1, re2, im1, im2, re3, im3, i);
+					stop_meas(&t);
+					if (min > t.diff) {
+						min = t.diff;
+					}
+					acc+=t.diff;
+				}
+				if (strcmp(argv[1],"avg")) {
+					printf("vector %f %d\n", (float)(acc/ITER_NUM), i); 
+				}
+				else {
+					printf("vector %lld %d\n", min, i); 
+				}
 				reset_meas(&t);
 			}
-			if (!strcmp(argv[1],"avg")) {
-				printf("scalar %f %d\n", (float)(acc/ITER_NUM), i); 
+			for (i = 0; i < VECTOR_SIZE; ++i) {
+				fprintf(f,"%d ", re3[i]);
+				fprintf(f,"%d ", im3[i]);
 			}
-			else {
-				printf("scalar %lld %d\n", min, i); 
-			}
+			printf("DONE 128\n");
 		}
-		for (i = 0; i < VECTOR_SIZE; ++i) {
-			fprintf(f,"%d ", re3[i]);
-			fprintf(f,"%d ", im3[i]);
-		}
-		printf("DONE SCALAR\n");
-		// 128 bits complex Multiplication
-		for (i = 0; i < VECTOR_SIZE; ++i) {
-			min = LLONG_MAX;
-			acc = 0;
-			for (j = 0; j < ITER_NUM; ++j) {
-				start_meas(&t);
-				componentwise_multiply_complex_128B(re1, re2, im1, im2, re3, im3, i);
-				stop_meas(&t);
-				if (min > t.diff) {
-					min = t.diff;
-				}
-				acc+=t.diff;
-			}
-			if (strcmp(argv[1],"avg")) {
-				printf("vector %f %d\n", (float)(acc/ITER_NUM), i); 
-			}
-			else {
-				printf("vector %lld %d\n", min, i); 
-			}
-			reset_meas(&t);
-		}
-		for (i = 0; i < VECTOR_SIZE; ++i) {
-			fprintf(f,"%d ", re3[i]);
-			fprintf(f,"%d ", im3[i]);
-		}
-		printf("DONE 128\n");
 
-		// 256 bits complex Multiplication
-		for (i = 0; i < VECTOR_SIZE; ++i) {
-			min = LLONG_MAX;
-			acc = 0;
-			for (j = 0; j < ITER_NUM; ++j) {
-				start_meas(&t);
-				componentwise_multiply_complex_256B(re1, re2, im1, im2, re3, im3, i);
-				stop_meas(&t);
-				if (min > t.diff) {
-					min = t.diff;
+		else if (!strcmp(argv[4], "256")) {
+			// 256 bits complex Multiplication
+			for (i = 0; i < VECTOR_SIZE; ++i) {
+				min = LLONG_MAX;
+				acc = 0;
+				for (j = 0; j < ITER_NUM; ++j) {
+					start_meas(&t);
+					componentwise_multiply_complex_256B(re1, re2, im1, im2, re3, im3, i);
+					stop_meas(&t);
+					if (min > t.diff) {
+						min = t.diff;
+					}
+					acc+=t.diff;
+					reset_meas(&t);
 				}
-				acc+=t.diff;
-				reset_meas(&t);
+				if (strcmp(argv[1],"avg")) {
+					printf("vector256 %f %d\n", (float)(acc/ITER_NUM), i); 
+				}
+				else {
+					printf("vector256 %lld %d\n", min, i); 
+				}
 			}
-			if (strcmp(argv[1],"avg")) {
-				printf("vector256 %f %d\n", (float)(acc/ITER_NUM), i); 
+			for (i = 0; i < VECTOR_SIZE; ++i) {
+				fprintf(f,"%d ", re3[i]);
+				fprintf(f,"%d ", im3[i]);
 			}
-			else {
-				printf("vector256 %lld %d\n", min, i); 
-			}
-		}
-		for (i = 0; i < VECTOR_SIZE; ++i) {
-			fprintf(f,"%d ", re3[i]);
-			fprintf(f,"%d ", im3[i]);
-		}
-		printf("DONE 256\n");
+			printf("DONE 256\n");
 
+		}
 	}
 	else {
-		for (i = 0; i < VECTOR_SIZE; ++i) {
-			min = INT_MAX;
-			acc = 0;
-			for (j = 0; j < ITER_NUM; ++j) {
-				start_meas(&t);
-				componentwise_multiply_real_scalar(x, y, z, i);
-				stop_meas(&t);
-				if (min > t.diff) {
-					min = t.diff;
+		if (!strcmp(argv[4], "scalar")) {
+			for (i = 0; i < VECTOR_SIZE; ++i) {
+				min = INT_MAX;
+				acc = 0;
+				for (j = 0; j < ITER_NUM; ++j) {
+					start_meas(&t);
+					componentwise_multiply_real_scalar(x, y, z, i);
+					stop_meas(&t);
+					if (min > t.diff) {
+						min = t.diff;
+					}
+					acc+=t.diff;
+					reset_meas(&t);
 				}
-				acc+=t.diff;
-				reset_meas(&t);
-			}
-			if (!strcmp(argv[1],"avg")) {
-				printf("scalar %f %d\n", (float)(acc/ITER_NUM), i); 
+				if (!strcmp(argv[1],"avg")) {
+					printf("scalar %f %d\n", (float)(acc/ITER_NUM), i); 
 
+				}
+				else {
+					printf("scalar %lld %d\n", min, i); 
+				}
 			}
-			else {
-				printf("scalar %lld %d\n", min, i); 
+			for (i = 0; i < VECTOR_SIZE; ++i) {
+				fprintf(f,"%d ", z[i]);
+				fprintf(f,"%d ", z[i]);
 			}
+			printf("DONE SCALAR\n");
 		}
-		for (i = 0; i < VECTOR_SIZE; ++i) {
-			fprintf(f,"%d ", z[i]);
-			fprintf(f,"%d ", z[i]);
-		}
-		printf("DONE SCALAR\n");
 
 
 		// FOR DEBUGGING
@@ -333,59 +349,64 @@ int main(int argc, char *argv[]) {
 		/*printf("It %d: %d * %d = %d\n", i, x[i], y[i], z[i]);*/
 		/*}*/
 
-		// 128 bits Multiplication
-		for (i = 0; i < VECTOR_SIZE; ++i) {
-			min = LLONG_MAX;
-			acc = 0;
-			for (j = 0; j < ITER_NUM; ++j) {
-				start_meas(&t);
-				componentwise_multiply_real_128(x, y, z, i);
-				stop_meas(&t);
-				if (min > t.diff) {
-					min = t.diff;
+		else if (!strcmp(argv[4], "128")) {
+			// 128 bits Multiplication
+			for (i = 0; i < VECTOR_SIZE; ++i) {
+				min = LLONG_MAX;
+				acc = 0;
+				for (j = 0; j < ITER_NUM; ++j) {
+					start_meas(&t);
+					componentwise_multiply_real_128(x, y, z, i);
+					stop_meas(&t);
+					if (min > t.diff) {
+						min = t.diff;
+					}
+					acc+=t.diff;
+					reset_meas(&t);
 				}
-				acc+=t.diff;
-				reset_meas(&t);
+				if (strcmp(argv[1],"avg")) {
+					printf("vector %f %d\n", (float)(acc/ITER_NUM), i); 
+				}
+				else {
+					printf("vector %lld %d\n", min, i); 
+				}
 			}
-			if (strcmp(argv[1],"avg")) {
-				printf("vector %f %d\n", (float)(acc/ITER_NUM), i); 
+			for (i = 0; i < VECTOR_SIZE; ++i) {
+				fprintf(f,"%d ", z[i]);
+				fprintf(f,"%d ", z[i]);
 			}
-			else {
-				printf("vector %lld %d\n", min, i); 
-			}
+			printf("DONE 128\n");
 		}
-		for (i = 0; i < VECTOR_SIZE; ++i) {
-			fprintf(f,"%d ", z[i]);
-			fprintf(f,"%d ", z[i]);
-		}
-		printf("DONE 128\n");
 
-		// 256 bits Multiplication
-		for (i = 0; i < VECTOR_SIZE; ++i) {
-			min = LLONG_MAX;
-			acc = 0;
-			for (j = 0; j < ITER_NUM; ++j) {
-				start_meas(&t);
-				componentwise_multiply_real_256(x, y, z, i);
-				stop_meas(&t);
-				if (min > t.diff) {
-					min = t.diff;
+		else if (!strcmp(argv[4], "256")) {
+			// 256 bits Multiplication
+			for (i = 0; i < VECTOR_SIZE; ++i) {
+				min = LLONG_MAX;
+				acc = 0;
+				for (j = 0; j < ITER_NUM; ++j) {
+					start_meas(&t);
+					componentwise_multiply_real_256(x, y, z, i);
+					stop_meas(&t);
+					if (min > t.diff) {
+						min = t.diff;
+					}
+					acc+=t.diff;
+					reset_meas(&t);
 				}
-				acc+=t.diff;
-				reset_meas(&t);
+				if (strcmp(argv[1],"avg")) {
+					printf("vector256 %f %d\n", (float)(acc/ITER_NUM), i); 
+				}
+				else {
+					printf("vector256 %lld %d\n", min, i); 
+				}
 			}
-			if (strcmp(argv[1],"avg")) {
-				printf("vector256 %f %d\n", (float)(acc/ITER_NUM), i); 
+			for (i = 0; i < VECTOR_SIZE; ++i) {
+				fprintf(f,"%d ", z[i]);
+				fprintf(f,"%d ", z[i]);
+
 			}
-			else {
-				printf("vector256 %lld %d\n", min, i); 
-			}
+			printf("DONE 256\n");
 		}
-		for (i = 0; i < VECTOR_SIZE; ++i) {
-			fprintf(f,"%d ", z[i]);
-			fprintf(f,"%d ", z[i]);
-		}
-		printf("DONE 256\n");
 	}
 	return 0;
 }
