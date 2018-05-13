@@ -16,8 +16,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define VECTOR_SIZE 10000 // TODO check this
-#define ITER_NUM 2
+
+#define VECTOR_SIZE 100000 // TODO check this
+#define ITER_NUM 1
 
 // example SIMD macros, not necessary to be used, write your own
 //
@@ -313,7 +314,7 @@ int main(int argc, char *argv[]) {
 
 		}
 	}
-	else {
+	else if (!strcmp(argv[3], "real")) {
 		if (!strcmp(argv[4], "scalar")) {
 			for (i = 0; i < VECTOR_SIZE; ++i) {
 				min = INT_MAX;
@@ -408,6 +409,92 @@ int main(int argc, char *argv[]) {
 			printf("DONE 256\n");
 		}
 	}
+	else{
+		if (!strcmp(argv[4], "scalar")) {
+			for (int powin = 0; powin < log2(VECTOR_SIZE); ++powin) {
+				min = INT_MAX;
+				acc = 0;
+				for (i = 1; i <= (1<<powin); ++i) {
+					start_meas(&t);
+					componentwise_multiply_real_scalar(x, y, z, i);
+					stop_meas(&t);
+					if (min > t.diff) {
+						min = t.diff;
+					}
+					acc+=t.diff;
+					reset_meas(&t);
+				}
+				if (!strcmp(argv[1],"avg")) {
+					printf("scalar %f %d\n", (float)(acc/ITER_NUM), i); 
+
+				}
+				else {
+					printf("scalar %lld %d\n", min, i); 
+				}
+			}
+			for (i = 0; i < VECTOR_SIZE; ++i) {
+				fprintf(f,"%d ", z[i]);
+				fprintf(f,"%d ", z[i]);
+			}
+			printf("DONE SCALAR\n");
+		}
+		else if (!strcmp(argv[4], "128")) {
+			for (int powin = 0; powin < log2(VECTOR_SIZE); ++powin) {
+				min = INT_MAX;
+				acc = 0;
+				for (i = 1; i <= (1<<powin); ++i) {
+					start_meas(&t);
+					componentwise_multiply_real_128(x, y, z, i);
+					stop_meas(&t);
+					if (min > t.diff) {
+						min = t.diff;
+					}
+					acc+=t.diff;
+					reset_meas(&t);
+				}
+				if (!strcmp(argv[1],"avg")) {
+					printf("vector %f %d\n", (float)(acc/ITER_NUM), i); 
+
+				}
+				else {
+					printf("vector %lld %d\n", min, i); 
+				}
+			}
+			for (i = 0; i < VECTOR_SIZE; ++i) {
+				fprintf(f,"%d ", z[i]);
+				fprintf(f,"%d ", z[i]);
+			}
+			printf("DONE 128\n");
+		}
+		else if (!strcmp(argv[4], "256")) {
+			for (int powin = 0; powin < log2(VECTOR_SIZE); ++powin) {
+				min = INT_MAX;
+				acc = 0;
+				for (i = 1; i <= (1<<powin); ++i) {
+					start_meas(&t);
+					componentwise_multiply_real_256(x, y, z, i);
+					stop_meas(&t);
+					if (min > t.diff) {
+						min = t.diff;
+					}
+					acc+=t.diff;
+					reset_meas(&t);
+				}
+				if (!strcmp(argv[1],"avg")) {
+					printf("vector256 %f %d\n", (float)(acc/ITER_NUM), i); 
+
+				}
+				else {
+					printf("vector256 %lld %d\n", min, i); 
+				}
+			}
+			for (i = 0; i < VECTOR_SIZE; ++i) {
+				fprintf(f,"%d ", z[i]);
+				fprintf(f,"%d ", z[i]);
+			}
+			printf("DONE 256\n");
+		}
+	}
 	return 0;
 }
 
@@ -459,6 +546,7 @@ static inline void componentwise_multiply_complex_scalarB(int16_t *xre, int16_t 
 }
 
 static inline void componentwise_multiply_complex_128B(int16_t *xre, int16_t *yre, int16_t *xim, int16_t *yim, int16_t *zre, int16_t *zim, int N) {
+
 	__m128i *xre128 = (__m128i *)xre;
 	__m128i *yre128 = (__m128i *)yre;
 	__m128i *xim128 = (__m128i *)xim;
@@ -466,7 +554,7 @@ static inline void componentwise_multiply_complex_128B(int16_t *xre, int16_t *yr
 	__m128i *zre128 = (__m128i *)zre;
 	__m128i *zim128 = (__m128i *)zim;
 	int i;
-	for (i = 0; i < N>>8; i++) {
+	for (i = 0; i < ceil(N/8.0); i++) {
 		zre128[i] = _mm_mulhrs_epi16(xre128[i], yre128[i]); 
 		zre128[i] = _mm_sub_epi16(zre128[i], _mm_mulhrs_epi16(xim128[i], yim128[i])); 
 		zim128[i] = _mm_mulhrs_epi16(xre128[i], yim128[i]); 
@@ -482,7 +570,7 @@ static inline void componentwise_multiply_complex_256B(int16_t *xre, int16_t *yr
 	__m256i *zre256 = (__m256i *)zre;
 	__m256i *zim256 = (__m256i *)zim;
 	int i;
-	for (i = 0; i < (N>>16); i++) {
+	for (i = 0; i < ceil(N/16.0); i++) {
 		zre256[i] = _mm256_mulhrs_epi16(xre256[i], yre256[i]); 
 		zre256[i] = _mm256_sub_epi16(zre256[i], _mm256_mulhrs_epi16(xim256[i], yim256[i])); 
 		zim256[i] = _mm256_mulhrs_epi16(xre256[i], yim256[i]); 
@@ -550,7 +638,7 @@ static inline void componentwise_multiply_real_256(int16_t *x,int16_t *y, int16_
 	__m256i *z256 = (__m256i *)z;
 
 	int i;
-	for (i = 0; i < ceil(N/16.0); i+=1) {
+	for (i = 0; i < ceil(N/16.0); i++) {
 		z256[i] = _mm256_mulhrs_epi16(x256[i], y256[i]);
 	}
 
